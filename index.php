@@ -46,7 +46,7 @@
                     <!--Register-->
                     <form action="register.php" method="post" class="formulario__register">
                         <h2>Regístrarse</h2>
-                        <select name="tipo" class="select-input">
+                        <select name="tipo">
                             <option value="">Seleccione un tipo de usuario</option>
                             <option value="Estudiante">Estudiante</option>
                             <option value="Profesor">Profesor</option>
