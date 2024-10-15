@@ -23,23 +23,24 @@ main{
 
 .contenedor__todo{
     width: 100%;
-    max-width: 800px;
+    max-width: 850px;
     margin: auto;
     position: relative;
 }
 
-.caja__trasera{
+.caja__trasera {
     width: 100%;
-    padding: 10px 20px;
+    padding: 20px 30px; /* Aumentado el padding */
     display: flex;
     justify-content: center;
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     background-color: rgba(0, 128, 255, 0.5);
+    min-height: 400px; /* Añadido para asegurar una altura mínima */
 }
 
-.caja__trasera div{
-    margin: 100px 40px;
+.caja__trasera div {
+    margin: 80px 50px; /* Reducido el margen superior e inferior */
     color: white;
     transition: all 500ms;
 }
@@ -121,7 +122,12 @@ main{
     background-repeat: no-repeat;
     background-position-x: 98%;
     background-position-y: 50%;
-}
+    padding: 10px;
+    border: none;
+    background: #F2F2F2;
+    font-size: 16px;
+    outline: none;
+  }
 
 .contenedor__login-register form button{
     padding: 10px 40px;
@@ -149,9 +155,9 @@ main{
         margin-top: 50px;
     }
 
-    .caja__trasera{
-        max-width: 350px;
-        height: 300px;
+    .caja__trasera {
+        max-width: 450px; /* Aumentado el ancho máximo */
+        height: 350px; /* Aumentado la altura */
         flex-direction: column;
         margin: auto;
     }
@@ -188,3 +194,107 @@ main{
     background-color: #4CAF50;
     color: #fff;
 }
+
+table {
+  /* Estilos para la tabla */
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  /* Estilos para las celdas de la tabla */
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+th {
+  /* Estilos para las celdas de la tabla (encabezados) */
+  background-color: #46A2FD;
+  color: #fff;
+  font-weight: bold;
+}
+
+table tr {
+    background-color: #f2f2f2; /* Color de fondo para todas las filas */
+}
+
+tr:nth-child(even) {
+  /* Estilos para las filas pares de la tabla */
+  background-color: #f8f8f8;
+}
+
+/* Estilos para los títulos */
+h2, h3 {
+    color: #fff;
+}
+
+p {
+    color: #fff; 
+}
+
+.student-row {
+    background-color: #f2f2f2;
+    transition: background-color 0.3s ease; /* Efecto suave */
+}
+
+.student-row:hover {
+    background-color: #d9d9d9; /* Color ligeramente más oscuro */
+    cursor: pointer; /* Cambiar el cursor al pasar por encima */
+}
+
+.boton-volver {
+    padding: 10px 40px;
+    border: 2px solid #fff;
+    font-size: 14px;
+    background: transparent;
+    font-weight: 600;
+    cursor: pointer;
+    color: white;
+    outline: none;
+    transition: all 300ms;
+    margin-top: 20px;
+}
+
+.boton-volver:hover {
+    background: #fff;
+    color: #46A2FD;
+}
+
+/* Estilo personalizado para los inputs */
+.input-custom {
+    width: 100%;
+    padding: 8px; /* Aumenta el tamaño del input */
+    border: 2px solid #46A2FD; /* Borde consistente */
+    border-radius: 10px; /* Bordes redondeados */
+    background: #F2F2F2; /* Fondo gris claro */
+    font-size: 16px; /* Tamaño de fuente */
+    outline: none;
+    color: #333; /* Color del texto */
+    margin-bottom: 20px; /* Espacio inferior */
+}
+
+/* Personaliza la apariencia del select */
+.input-custom select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+    background-repeat: no-repeat;
+    background-position-x: 98%;
+    background-position-y: 50%;
+    background-color: #F2F2F2;
+    padding: 8px;
+}
+
+/* Ajuste en el tamaño de la barra de selección */
+.input-custom select {
+    padding-right: 40px;
+}
+
+/* Cambios de color al enfoque */
+.input-custom:focus {
+    border-color: #0056b3; /* Color más oscuro al enfocarse */
+    background-color: #e6f2ff; /* Fondo azul claro */
+}
+

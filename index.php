@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -46,7 +46,7 @@
                     <!--Register-->
                     <form action="register.php" method="post" class="formulario__register">
                         <h2>Regístrarse</h2>
-                        <select name="tipo">
+                        <select name="tipo" class="select-input">
                             <option value="">Seleccione un tipo de usuario</option>
                             <option value="Estudiante">Estudiante</option>
                             <option value="Profesor">Profesor</option>
