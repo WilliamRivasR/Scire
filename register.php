@@ -23,8 +23,11 @@ if (!preg_match($pattern, $correo)) {
   exit;
 }
 
+// Aplicar hash SHA-256 a la contraseña antes de enviarla a la base de datos
+$hash_contraseña = hash('sha256', $contraseña);
+
 $stmt = $db->prepare("CALL sp_register(?, ?, ?, ?, ?)");
-$stmt->bind_param("sssss", $nombre, $correo, $usuario, $contraseña, $tipo);
+$stmt->bind_param("sssss", $nombre, $correo, $usuario, $hash_contraseña, $tipo);
 $stmt->execute();
 
 if ($stmt->affected_rows > 0) {
