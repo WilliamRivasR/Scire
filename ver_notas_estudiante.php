@@ -35,21 +35,22 @@ if (isset($_GET['id'])) {
                   <style>
                       .progress-container {
                           width: 100%;
-                          background-color: #d1d1d1;
-                          border-radius: 25px;
-                          margin: 10px 0;
-                          position: relative;
-                          height: 30px;
+                          background-color: #f0f0f0;
+                          border-radius: 10px;
+                          overflow: hidden;
+                          margin: 5px 0;
                       }
+
                       .progress-bar {
-                          height: 100%;
-                          background-color: #46A2FD;
-                          width: 0;
-                          border-radius: 25px;
-                          text-align: center;
+                          height: 25px;
                           color: white;
-                          font-weight: bold;
-                          line-height: 30px;
+                          text-align: center;
+                          line-height: 25px;
+                          border-radius: 8px;
+                          transition: width 0.5s ease-in-out;
+                          min-width: 30px;
+                          position: relative;
+                          box-shadow: 0 2px 5px rgba(0,0,0,0.2);
                       }
                   </style>
               </head>
@@ -98,14 +99,20 @@ if (isset($_GET['id'])) {
                         <th>Nota Final</th>
                     </tr>";
             while ($row = $result->fetch_assoc()) {
-                // Barra de progreso para la nota final
-                $nota_final = intval($row['nota_final']); // Convertir a entero
+                $nota_final = intval($row['nota_final']);
+                $color_class = '';
+                if ($nota_final >= 70) {
+                    $color_class = 'background: linear-gradient(45deg, #4CAF50, #45a049);'; // Verde para aprobado
+                } else {
+                    $color_class = 'background: linear-gradient(45deg, #f44336, #d32f2f);'; // Rojo para reprobado
+                }
+                
                 echo "<tr>
                         <td>" . htmlspecialchars($row['materia']) . "</td>
                         <td>" . htmlspecialchars($row['notas_individuales']) . "</td>
                         <td>
                             <div class='progress-container'>
-                                <div class='progress-bar' style='width: " . $nota_final . "%;'>
+                                <div class='progress-bar' style='width: " . $nota_final . "%; " . $color_class . "'>
                                     " . $nota_final . "/100
                                 </div>
                             </div>

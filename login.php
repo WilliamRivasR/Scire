@@ -45,7 +45,7 @@ if (isset($_SESSION['correo'])) {
             <style>
                 .logout-btn {
                     position: absolute;
-                    bottom: 10px;  /* Cambiar de 'top' a 'bottom' */
+                    bottom: 10px;
                     right: 10px;
                     padding: 10px 20px;
                     background-color: #f44336;
@@ -58,6 +58,28 @@ if (isset($_SESSION['correo'])) {
                 .logout-btn:hover {
                     background-color: #d32f2f;
                 }
+
+                /* Estilos simples para la barra de progreso */
+                .progress-container {
+                    width: 100%;
+                    background-color: #f0f0f0;
+                    border-radius: 10px;
+                    overflow: hidden;
+                    margin: 5px 0;
+                }
+
+                .progress-bar {
+                    height: 25px;
+                    background: linear-gradient(45deg, #4CAF50, #45a049);
+                    color: white;
+                    text-align: center;
+                    line-height: 25px;
+                    border-radius: 8px;
+                    transition: width 0.5s ease-in-out;
+                    min-width: 30px;
+                    position: relative;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                }
             </style>
         </head>
         <body>
@@ -65,15 +87,7 @@ if (isset($_SESSION['correo'])) {
             <!-- Botón de cerrar sesión -->
             <form action='logout.php' method='POST'>
                 <button type='submit' class='logout-btn'>Cerrar Sesión</button>
-            </form>
-        
-        </body>
-        </html>";
-
-        // Botón de cerrar sesión
-        echo "<form action='logout.php' method='POST'>
-                <button type='submit' class='logout-btn'>Cerrar Sesión</button>
-              </form>";
+            </form>";
 
         // Información del usuario
         echo "<h3>Datos del Usuario</h3>";
@@ -97,106 +111,101 @@ if (isset($_SESSION['correo'])) {
             try {
                 $connection = $db->getConnection();
                 
-                // Limpiar cualquier resultado pendiente
                 while ($connection->more_results()) {
                     $connection->next_result();
                     $connection->store_result();
                 }
 
-                        // Función auxiliar para mostrar una fila de notas
-        function outputNotaRow($row) {
-            $nota_final = intval($row['nota_final']);
-            echo "<tr>
-                    <td>" . htmlspecialchars($row['materia']) . "</td>
-                    <td>" . htmlspecialchars($row['notas_individuales']) . "</td>
-                    <td>
-                        <div class='progress-container'>
-                            <div class='progress-bar' style='width: " . $nota_final . "%;'>
-                                " . $nota_final . "/100
-                            </div>
-                        </div>
-                    </td>
-                  </tr>";
-        }
-        
-                // Obtener ID del estudiante
-$query = "SELECT id FROM usuarios WHERE correo = ? AND tipo = 'Estudiante'";
-$stmt = $db->prepare($query);
-
-if (!$stmt) {
-    throw new Exception("Error preparando la consulta: " . $db->error());
-}
-
-$stmt->bind_param("s", $correo_usuario);
-if (!$stmt->execute()) {
-    throw new Exception("Error ejecutando la consulta: " . $stmt->error);
-}
-
-$result = $stmt->get_result();
-if ($result->num_rows > 0) {
-    $user = $result->fetch_assoc();
-    $id_estudiante = $user['id'];
-
-    // No cierres el stmt aquí, ya que se usará más adelante
-    // $stmt->close(); // Esto se ha comentado
-
-    // Limpiar cualquier resultado pendiente nuevamente
-    while ($connection->more_results()) {
-        $connection->next_result();
-        $connection->store_result();
-    }
-
-    // Obtener las notas del estudiante
-    $stmt_notas = $db->prepare("CALL sp_obtener_materias_estudiante(?, ?)");
-    if (!$stmt_notas) {
-        throw new Exception("Error preparando el procedimiento: " . $db->error());
-    }
-
-    $stmt_notas->bind_param("ss", $nombre, $correo_usuario);
-    if (!$stmt_notas->execute()) {
-        throw new Exception("Error ejecutando el procedimiento: " . $stmt_notas->error);
-    }
-
-    // Procesar los resultados del procedimiento almacenado
-    do {
-        $result = $stmt_notas->get_result();
-
-        if ($result === false) {
-            continue;
-        }
-
-        if ($result->num_rows > 0) {
-            $first_row = $result->fetch_assoc();
-            
-            // Determinar qué tipo de resultado es basado en las columnas
-            if (isset($first_row['titulo'])) {
-                // Es el título
-                echo "<h3>" . htmlspecialchars($first_row['titulo']) . "</h3>";
-            } elseif (isset($first_row['materia'])) {
-                // Son las notas
-                echo "<table>
-                        <tr>
-                            <th>Materia</th>
-                            <th>Notas Individuales</th>
-                            <th>Nota Final</th>
-                        </tr>";
-                // Procesar la primera fila
-                outputNotaRow($first_row);
-                // Procesar el resto de las filas
-                while ($row = $result->fetch_assoc()) {
-                    outputNotaRow($row);
+                // Función auxiliar para mostrar una fila de notas
+                function outputNotaRow($row) {
+                    $nota_final = intval($row['nota_final']);
+                    $color_class = '';
+                    if ($nota_final >= 70) {
+                        $color_class = 'background: linear-gradient(45deg, #4CAF50, #45a049);'; // Verde para aprobado
+                    } else {
+                        $color_class = 'background: linear-gradient(45deg, #f44336, #d32f2f);'; // Rojo para reprobado
+                    }
+                    
+                    echo "<tr>
+                            <td>" . htmlspecialchars($row['materia']) . "</td>
+                            <td>" . htmlspecialchars($row['notas_individuales']) . "</td>
+                            <td>
+                                <div class='progress-container'>
+                                    <div class='progress-bar' style='width: " . $nota_final . "%; " . $color_class . "'>
+                                        " . $nota_final . "/100
+                                    </div>
+                                </div>
+                            </td>
+                          </tr>";
                 }
-                echo "</table>";
-            }
-        }
+                
+                // Obtener ID del estudiante
+                $query = "SELECT id FROM usuarios WHERE correo = ? AND tipo = 'Estudiante'";
+                $stmt = $db->prepare($query);
 
-        $result->free();
-    } while ($stmt_notas->next_result());
+                if (!$stmt) {
+                    throw new Exception("Error preparando la consulta: " . $db->error());
+                }
 
-    $stmt_notas->close();
-} else {
-    echo "<p>No se encontró la información del estudiante.</p>";
-}
+                $stmt->bind_param("s", $correo_usuario);
+                if (!$stmt->execute()) {
+                    throw new Exception("Error ejecutando la consulta: " . $stmt->error);
+                }
+
+                $result = $stmt->get_result();
+                if ($result->num_rows > 0) {
+                    $user = $result->fetch_assoc();
+                    $id_estudiante = $user['id'];
+
+                    while ($connection->more_results()) {
+                        $connection->next_result();
+                        $connection->store_result();
+                    }
+
+                    $stmt_notas = $db->prepare("CALL sp_obtener_materias_estudiante(?, ?)");
+                    if (!$stmt_notas) {
+                        throw new Exception("Error preparando el procedimiento: " . $db->error());
+                    }
+
+                    $stmt_notas->bind_param("ss", $nombre, $correo_usuario);
+                    if (!$stmt_notas->execute()) {
+                        throw new Exception("Error ejecutando el procedimiento: " . $stmt_notas->error);
+                    }
+
+                    do {
+                        $result = $stmt_notas->get_result();
+
+                        if ($result === false) {
+                            continue;
+                        }
+
+                        if ($result->num_rows > 0) {
+                            $first_row = $result->fetch_assoc();
+                            
+                            if (isset($first_row['titulo'])) {
+                                echo "<h3>" . htmlspecialchars($first_row['titulo']) . "</h3>";
+                            } elseif (isset($first_row['materia'])) {
+                                echo "<table>
+                                        <tr>
+                                            <th>Materia</th>
+                                            <th>Notas Individuales</th>
+                                            <th>Nota Final</th>
+                                        </tr>";
+                                outputNotaRow($first_row);
+                                while ($row = $result->fetch_assoc()) {
+                                    outputNotaRow($row);
+                                }
+                                echo "</table>";
+                            }
+                        }
+
+                        $result->free();
+                    } while ($stmt_notas->next_result());
+
+                    $stmt_notas->close();
+                } else {
+                    echo "<p>No se encontró la información del estudiante.</p>";
+                }
             } catch (Exception $e) {
                 echo "<div class='alerta error'>Error: " . htmlspecialchars($e->getMessage()) . "</div>";
             }
