@@ -101,7 +101,7 @@ if (isset($_GET['id'])) {
             while ($row = $result->fetch_assoc()) {
                 $nota_final = intval($row['nota_final']);
                 $color_class = '';
-                if ($nota_final >= 70) {
+                if ($nota_final >= 75) {
                     $color_class = 'background: linear-gradient(45deg, #4CAF50, #45a049);'; // Verde para aprobado
                 } else {
                     $color_class = 'background: linear-gradient(45deg, #f44336, #d32f2f);'; // Rojo para reprobado
