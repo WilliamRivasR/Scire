@@ -1,3 +1,15 @@
+<?php
+session_start(); // Iniciar sesión
+
+// Si la sesión está activa, cerrarla
+if (isset($_SESSION['correo'])) {
+    session_unset(); // Eliminar todas las variables de sesión
+    session_destroy(); // Destruir la sesión
+}
+?>
+
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>

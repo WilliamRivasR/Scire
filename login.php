@@ -15,7 +15,7 @@ if (isset($_SESSION['correo'])) {
     $correo = $_SESSION['correo'];
     
     // Preparar consulta para obtener los datos del usuario con sesión activa
-    $stmt = $db->prepare("CALL sp_login_sesion(?)"); // Suponemos que hay un procedimiento almacenado para obtener datos de sesión
+    $stmt = $db->prepare("CALL sp_login_sesion(?)");
     $stmt->bind_param("s", $correo);
     
     if (!$stmt->execute()) {
@@ -36,14 +36,44 @@ if (isset($_SESSION['correo'])) {
 
         // Encabezado y hoja de estilos
         echo "<!DOCTYPE html>
-              <html lang='es'>
-              <head>
-                  <meta charset='UTF-8'>
-                  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-                  <title>Datos del Usuario</title>
-                  <link rel='stylesheet' href='assets/css/estilos.css'>
-              </head>
-              <body>";
+        <html lang='es'>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Datos del Usuario</title>
+            <link rel='stylesheet' href='assets/css/estilos.css'>
+            <style>
+                .logout-btn {
+                    position: absolute;
+                    bottom: 10px;  /* Cambiar de 'top' a 'bottom' */
+                    right: 10px;
+                    padding: 10px 20px;
+                    background-color: #f44336;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                }
+        
+                .logout-btn:hover {
+                    background-color: #d32f2f;
+                }
+            </style>
+        </head>
+        <body>
+        
+            <!-- Botón de cerrar sesión -->
+            <form action='logout.php' method='POST'>
+                <button type='submit' class='logout-btn'>Cerrar Sesión</button>
+            </form>
+        
+        </body>
+        </html>";
+
+        // Botón de cerrar sesión
+        echo "<form action='logout.php' method='POST'>
+                <button type='submit' class='logout-btn'>Cerrar Sesión</button>
+              </form>";
 
         // Información del usuario
         echo "<h3>Datos del Usuario</h3>";
@@ -64,38 +94,116 @@ if (isset($_SESSION['correo'])) {
 
         // Mostrar más detalles según el tipo de usuario
         if (strcasecmp($tipo_usuario, 'Estudiante') == 0) {
-            $stmt->next_result();
-            $result = $stmt->get_result();
-            if ($result && $result->num_rows > 0) {
-                $title = $result->fetch_assoc();
-                echo "<h3>" . ($title['titulo'] ?? 'Notas del estudiante') . "</h3>";
-            }
+            try {
+                $connection = $db->getConnection();
+                
+                // Limpiar cualquier resultado pendiente
+                while ($connection->more_results()) {
+                    $connection->next_result();
+                    $connection->store_result();
+                }
 
-            $stmt->next_result();
-            $result = $stmt->get_result();
-            if ($result && $result->num_rows > 0) {
+                        // Función auxiliar para mostrar una fila de notas
+        function outputNotaRow($row) {
+            $nota_final = intval($row['nota_final']);
+            echo "<tr>
+                    <td>" . htmlspecialchars($row['materia']) . "</td>
+                    <td>" . htmlspecialchars($row['notas_individuales']) . "</td>
+                    <td>
+                        <div class='progress-container'>
+                            <div class='progress-bar' style='width: " . $nota_final . "%;'>
+                                " . $nota_final . "/100
+                            </div>
+                        </div>
+                    </td>
+                  </tr>";
+        }
+        
+                // Obtener ID del estudiante
+$query = "SELECT id FROM usuarios WHERE correo = ? AND tipo = 'Estudiante'";
+$stmt = $db->prepare($query);
+
+if (!$stmt) {
+    throw new Exception("Error preparando la consulta: " . $db->error());
+}
+
+$stmt->bind_param("s", $correo_usuario);
+if (!$stmt->execute()) {
+    throw new Exception("Error ejecutando la consulta: " . $stmt->error);
+}
+
+$result = $stmt->get_result();
+if ($result->num_rows > 0) {
+    $user = $result->fetch_assoc();
+    $id_estudiante = $user['id'];
+
+    // No cierres el stmt aquí, ya que se usará más adelante
+    // $stmt->close(); // Esto se ha comentado
+
+    // Limpiar cualquier resultado pendiente nuevamente
+    while ($connection->more_results()) {
+        $connection->next_result();
+        $connection->store_result();
+    }
+
+    // Obtener las notas del estudiante
+    $stmt_notas = $db->prepare("CALL sp_obtener_materias_estudiante(?, ?)");
+    if (!$stmt_notas) {
+        throw new Exception("Error preparando el procedimiento: " . $db->error());
+    }
+
+    $stmt_notas->bind_param("ss", $nombre, $correo_usuario);
+    if (!$stmt_notas->execute()) {
+        throw new Exception("Error ejecutando el procedimiento: " . $stmt_notas->error);
+    }
+
+    // Procesar los resultados del procedimiento almacenado
+    do {
+        $result = $stmt_notas->get_result();
+
+        if ($result === false) {
+            continue;
+        }
+
+        if ($result->num_rows > 0) {
+            $first_row = $result->fetch_assoc();
+            
+            // Determinar qué tipo de resultado es basado en las columnas
+            if (isset($first_row['titulo'])) {
+                // Es el título
+                echo "<h3>" . htmlspecialchars($first_row['titulo']) . "</h3>";
+            } elseif (isset($first_row['materia'])) {
+                // Son las notas
                 echo "<table>
                         <tr>
                             <th>Materia</th>
                             <th>Notas Individuales</th>
                             <th>Nota Final</th>
                         </tr>";
-
+                // Procesar la primera fila
+                outputNotaRow($first_row);
+                // Procesar el resto de las filas
                 while ($row = $result->fetch_assoc()) {
-                    echo "<tr>
-                            <td>" . ($row['materia'] ?? 'N/A') . "</td>
-                            <td>" . ($row['notas_individuales'] ?? 'N/A') . "</td>
-                            <td>" . ($row['nota_final'] ?? 'N/A') . "</td>
-                          </tr>";
+                    outputNotaRow($row);
                 }
                 echo "</table>";
-            } else {
-                echo "<h3>No se encontraron materias para el estudiante.</h3>";
+            }
+        }
+
+        $result->free();
+    } while ($stmt_notas->next_result());
+
+    $stmt_notas->close();
+} else {
+    echo "<p>No se encontró la información del estudiante.</p>";
+}
+            } catch (Exception $e) {
+                echo "<div class='alerta error'>Error: " . htmlspecialchars($e->getMessage()) . "</div>";
             }
         } elseif (strcasecmp($tipo_usuario, 'Profesor') == 0) {
             // Mostrar lista de estudiantes
             echo "<h3>Lista de Estudiantes</h3>";
-            $stmt->next_result();
+            
             $stmt_estudiantes = $db->prepare("SELECT id, nombre, correo, usuario FROM usuarios WHERE tipo = 'Estudiante'");
             $stmt_estudiantes->execute();
             $result_estudiantes = $stmt_estudiantes->get_result();
@@ -171,8 +279,9 @@ else if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Iniciar sesión
             $_SESSION['correo'] = $correo;
 
-            // Mostrar la información del usuario que inició sesión
-            // (Igual que el bloque anterior para sesión activa)
+            // Redirigir al mismo archivo para mostrar la información del usuario
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit;
         }
     } else {
         echo "<div class='alerta error'>Correo o contraseña incorrectos.</div>";
